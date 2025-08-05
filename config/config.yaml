@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+database:
+  url: postgres://postgres:postgres@localhost:5432/messaging?sslmode=disable
+
+rabbitmq:
+  url: amqp://guest:guest@localhost:5672/
+
+workers: 3
