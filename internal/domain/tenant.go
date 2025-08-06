@@ -1,4 +1,4 @@
-package tenant
+package domain
 
 import "github.com/google/uuid"
 

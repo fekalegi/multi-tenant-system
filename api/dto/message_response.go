@@ -1,10 +1,10 @@
 package dto
 
 import (
-	"github.com/fekalegi/multi-tenant-system/internal/message"
+	"github.com/fekalegi/multi-tenant-system/internal/domain"
 )
 
 type GetMessagesResponse struct {
-	Data       []*message.Message `json:"data"`
-	NextCursor string             `json:"next_cursor,omitempty" example:"eyJpZCI6ImYx...YjAifQ=="`
+	Data       []*domain.Message `json:"data"`
+	NextCursor string            `json:"next_cursor,omitempty" example:"eyJpZCI6ImYx...YjAifQ=="`
 }

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	message2 "github.com/fekalegi/multi-tenant-system/internal/repository/postgresql"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -97,7 +98,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	tenantManager := tenant.NewTenantService(rmqConn, s.dbPool, s.log, 3) // Using your constructor
 
 	publisher := rabbitmq.NewPublisher(rmqConn, s.log)
-	messageRepo := message.NewRepository(s.dbPool)
+	messageRepo := message2.NewMessageRepository(s.dbPool)
 	messageService := message.NewService(publisher, messageRepo)
 
 	srv := server.NewServer(cfg, tenantManager, messageService, s.log)

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fekalegi/multi-tenant-system/internal/domain"
+	message2 "github.com/fekalegi/multi-tenant-system/internal/repository/postgresql"
 	"time"
 
 	"github.com/fekalegi/multi-tenant-system/internal/rabbitmq"
@@ -13,10 +15,10 @@ import (
 
 type Service struct {
 	publisher  *rabbitmq.Publisher
-	repository Repository
+	repository message2.MessageRepository
 }
 
-func NewService(publisher *rabbitmq.Publisher, repo Repository) *Service {
+func NewService(publisher *rabbitmq.Publisher, repo message2.MessageRepository) *Service {
 	return &Service{
 		publisher:  publisher,
 		repository: repo,
@@ -29,7 +31,7 @@ func (s *Service) PublishMessage(ctx context.Context, tenantID uuid.UUID, payloa
 		return err
 	}
 
-	msg := &Message{
+	msg := &domain.Message{
 		ID:        uuid.New(),
 		TenantID:  tenantID,
 		Payload:   body,
@@ -49,7 +51,7 @@ func (s *Service) PublishMessage(ctx context.Context, tenantID uuid.UUID, payloa
 	return nil
 }
 
-func (s *Service) FetchMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*Message, string, error) {
+func (s *Service) FetchMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*domain.Message, string, error) {
 	if limit <= 0 {
 		return nil, "", errors.New("limit must be > 0")
 	}

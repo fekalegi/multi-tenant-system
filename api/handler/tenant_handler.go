@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/fekalegi/multi-tenant-system/internal/domain"
 	"net/http"
 
 	"github.com/fekalegi/multi-tenant-system/api/dto" // Make sure to import the dto package
@@ -89,7 +90,7 @@ func (h *TenantHandler) DeleteTenant(c echo.Context) error {
 func (h *TenantHandler) UpdateConcurrency(c echo.Context) error {
 	id := c.Param("id")
 
-	var req tenant.ConcurrencyConfig
+	var req domain.ConcurrencyConfig
 	if err := c.Bind(&req); err != nil || req.Workers <= 0 {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "invalid request: 'workers' must be a positive number"})
 	}

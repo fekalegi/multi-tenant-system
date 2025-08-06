@@ -1,9 +1,8 @@
-package message
+package domain
 
 import (
-	"time"
-
 	"github.com/google/uuid"
+	"time"
 )
 
 type Message struct {

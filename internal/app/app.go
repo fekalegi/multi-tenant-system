@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/fekalegi/multi-tenant-system/internal/message"
+	message2 "github.com/fekalegi/multi-tenant-system/internal/repository/postgresql"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,7 +42,7 @@ func Start(cfg *config.Config) {
 	publisher := rabbitmq.NewPublisher(rmq, log)
 
 	// Message Service
-	messageRepo := message.NewRepository(dbPool)
+	messageRepo := message2.NewMessageRepository(dbPool)
 	messageService := message.NewService(publisher, messageRepo)
 
 	// HTTP Server

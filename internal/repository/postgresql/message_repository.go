@@ -1,10 +1,11 @@
-package message
+package postgresql
 
 import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/fekalegi/multi-tenant-system/internal/domain"
 	"strings"
 	"time"
 
@@ -12,20 +13,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository interface {
-	InsertMessage(ctx context.Context, msg *Message) error
-	GetMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*Message, string, error)
+type MessageRepository interface {
+	InsertMessage(ctx context.Context, msg *domain.Message) error
+	GetMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*domain.Message, string, error)
 }
 
-type repository struct {
+type messageRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgxpool.Pool) Repository {
-	return &repository{db: db}
+func NewMessageRepository(db *pgxpool.Pool) MessageRepository {
+	return &messageRepository{db: db}
 }
 
-func (r *repository) InsertMessage(ctx context.Context, msg *Message) error {
+func (r *messageRepository) InsertMessage(ctx context.Context, msg *domain.Message) error {
 	payloadJSON, err := json.Marshal(msg.Payload)
 	if err != nil {
 		return err
@@ -39,7 +40,7 @@ func (r *repository) InsertMessage(ctx context.Context, msg *Message) error {
 	return err
 }
 
-func (r *repository) GetMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*Message, string, error) {
+func (r *messageRepository) GetMessagesWithCursor(ctx context.Context, cursor string, limit int) ([]*domain.Message, string, error) {
 	var afterTime time.Time
 	var afterID uuid.UUID
 
@@ -79,12 +80,12 @@ func (r *repository) GetMessagesWithCursor(ctx context.Context, cursor string, l
 	}
 	defer rows.Close()
 
-	messages := []*Message{}
+	messages := []*domain.Message{}
 	var nextCursor string
 
 	for rows.Next() {
 		var (
-			m       Message
+			m       domain.Message
 			rawJSON []byte
 		)
 		err := rows.Scan(&m.ID, &m.TenantID, &rawJSON, &m.CreatedAt)

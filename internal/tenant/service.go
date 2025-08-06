@@ -3,7 +3,8 @@ package tenant
 import (
 	"context"
 	"fmt"
-	"github.com/fekalegi/multi-tenant-system/internal/message"
+	"github.com/fekalegi/multi-tenant-system/internal/domain"
+	message2 "github.com/fekalegi/multi-tenant-system/internal/repository/postgresql"
 	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 	"os/signal"
@@ -23,8 +24,8 @@ type Manager struct {
 	db         *pgxpool.Pool
 	Log        zerolog.Logger
 	defaultWkr int
-	tenantRepo Repository
-	msgRepo    message.Repository
+	tenantRepo message2.TenantRepository
+	msgRepo    message2.MessageRepository
 }
 
 type tenantConsumer struct {
@@ -39,8 +40,8 @@ func NewTenantService(rmq *rabbitmq.Connection, db *pgxpool.Pool, log zerolog.Lo
 		db:         db,
 		Log:        log,
 		defaultWkr: defaultWkr,
-		msgRepo:    message.NewRepository(db),
-		tenantRepo: NewRepository(db),
+		msgRepo:    message2.NewMessageRepository(db),
+		tenantRepo: message2.NewTenantRepository(db),
 	}
 }
 
@@ -189,7 +190,7 @@ func (m *Manager) startConsumer(ctx context.Context, tenantID, queue string, wor
 						Str("msg_id", messageID.String()).
 						Msg("Processing message")
 
-					_ = m.msgRepo.InsertMessage(ctx, &message.Message{
+					_ = m.msgRepo.InsertMessage(ctx, &domain.Message{
 						ID:        messageID,
 						TenantID:  tenantUUID,
 						Payload:   msg.Body,

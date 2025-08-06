@@ -1,4 +1,4 @@
-package tenant
+package postgresql
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Repository defines the interface for partition management.
-type Repository interface {
+// TenantRepository defines the interface for partition management.
+type TenantRepository interface {
 	CreatePartitionForTenant(ctx context.Context, tenantID string) error
 	DeletePartitionForTenant(ctx context.Context, tenantID string) error
 }
 
-type repository struct {
+type tenantRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgxpool.Pool) Repository {
-	return &repository{db: db}
+func NewTenantRepository(db *pgxpool.Pool) TenantRepository {
+	return &tenantRepository{db: db}
 }
 
-func (r *repository) CreatePartitionForTenant(ctx context.Context, tenantID string) error {
+func (r *tenantRepository) CreatePartitionForTenant(ctx context.Context, tenantID string) error {
 	partitionName := fmt.Sprintf("messages_tenant_%s", strings.ReplaceAll(tenantID, "-", "_"))
 
 	createPartitionSQL := fmt.Sprintf(
@@ -39,7 +39,7 @@ func (r *repository) CreatePartitionForTenant(ctx context.Context, tenantID stri
 	return nil
 }
 
-func (r *repository) DeletePartitionForTenant(ctx context.Context, tenantID string) error {
+func (r *tenantRepository) DeletePartitionForTenant(ctx context.Context, tenantID string) error {
 	partitionName := fmt.Sprintf("messages_tenant_%s", strings.ReplaceAll(tenantID, "-", "_"))
 
 	dropPartitionSQL := fmt.Sprintf(
