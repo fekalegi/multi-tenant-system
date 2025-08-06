@@ -37,6 +37,7 @@ func (h *TenantHandler) RegisterTenantRoutes(e *echo.Group) {
 // @Success 201 {object} dto.CreateTenantResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
+// @Security BearerAuth
 // @Router /api/tenants [post]
 func (h *TenantHandler) CreateTenant(c echo.Context) error {
 	var req dto.CreateTenantRequest
@@ -65,6 +66,7 @@ func (h *TenantHandler) CreateTenant(c echo.Context) error {
 // @Success 204 "No Content"
 // @Failure 404 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
+// @Security BearerAuth
 // @Router /api/tenants/{id} [delete]
 func (h *TenantHandler) DeleteTenant(c echo.Context) error {
 	id := c.Param("id")
@@ -82,10 +84,11 @@ func (h *TenantHandler) DeleteTenant(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Tenant ID"
-// @Param request body tenant.ConcurrencyConfig true "Concurrency config"
+// @Param request body domain.ConcurrencyConfig true "Concurrency config"
 // @Success 200 {object} dto.MessageResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
+// @Security BearerAuth
 // @Router /api/tenants/{id}/config/concurrency [put]
 func (h *TenantHandler) UpdateConcurrency(c echo.Context) error {
 	id := c.Param("id")

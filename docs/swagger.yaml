@@ -1,5 +1,23 @@
 basePath: /
 definitions:
+  domain.ConcurrencyConfig:
+    properties:
+      workers:
+        type: integer
+    type: object
+  domain.Message:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      payload:
+        items:
+          type: integer
+        type: array
+      tenant_id:
+        type: string
+    type: object
   dto.CreateTenantRequest:
     properties:
       name:
@@ -24,10 +42,22 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/message.Message'
+          $ref: '#/definitions/domain.Message'
         type: array
       next_cursor:
         example: eyJpZCI6ImYx...YjAifQ==
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      tenant_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      token:
         type: string
     type: object
   dto.MessageResponse:
@@ -36,25 +66,6 @@ definitions:
         example: operation successful
         type: string
     type: object
-  message.Message:
-    properties:
-      createdAt:
-        type: string
-      id:
-        type: string
-      payload:
-        items:
-          format: int32
-          type: integer
-        type: array
-      tenantID:
-        type: string
-    type: object
-  tenant.ConcurrencyConfig:
-    properties:
-      workers:
-        type: integer
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -62,6 +73,39 @@ info:
   title: Multi-Tenant Messaging API
   version: "1.0"
 paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Mock user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Mock login
+      tags:
+      - auth
   /api/messages:
     get:
       description: Retrieves a paginated list of all processed messages.
@@ -85,6 +129,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get messages with cursor-based pagination
       tags:
       - messages
@@ -120,6 +166,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Publish a message to a tenant
       tags:
       - messages
@@ -150,6 +198,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new tenant
       tags:
       - tenants
@@ -173,6 +223,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete a tenant
       tags:
       - tenants
@@ -192,7 +244,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/tenant.ConcurrencyConfig'
+          $ref: '#/definitions/domain.ConcurrencyConfig'
       produces:
       - application/json
       responses:
@@ -208,6 +260,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update tenant concurrency setting
       tags:
       - tenants

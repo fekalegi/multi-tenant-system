@@ -2,15 +2,18 @@ package config
 
 import (
 	"log"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	RabbitMQ RabbitMQConfig
-	Workers  int
+	Server    ServerConfig
+	Database  DatabaseConfig
+	RabbitMQ  RabbitMQConfig
+	JWTConfig JWTConfig
+
+	Workers int
 }
 
 type ServerConfig struct {
@@ -23,6 +26,11 @@ type DatabaseConfig struct {
 
 type RabbitMQConfig struct {
 	URL string
+}
+
+type JWTConfig struct {
+	Secret         string
+	ExpirationTime time.Duration
 }
 
 func LoadConfig() *Config {

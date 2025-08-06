@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fekalegi/multi-tenant-system/api/handler"
 	"github.com/fekalegi/multi-tenant-system/config"
+	"github.com/fekalegi/multi-tenant-system/internal/auth"
 	"github.com/fekalegi/multi-tenant-system/internal/message"
 	"github.com/fekalegi/multi-tenant-system/internal/tenant"
 	"github.com/labstack/echo/v4"
@@ -20,9 +21,9 @@ type Server struct {
 	log  zerolog.Logger
 }
 
-func NewServer(cfg *config.Config, manager *tenant.Manager, messageService *message.Service, log zerolog.Logger) *Server {
+func NewServer(cfg *config.Config, manager *tenant.Manager, messageService *message.Service, jwtManager *auth.JWTManager, log zerolog.Logger) *Server {
 	e := echo.New()
-	registerRoutes(e, manager, messageService)
+	registerRoutes(e, manager, messageService, jwtManager)
 
 	return &Server{
 		e:    e,
@@ -42,15 +43,20 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.e.Shutdown(ctx)
 }
 
-func registerRoutes(e *echo.Echo, manager *tenant.Manager, messageService *message.Service) {
-	api := e.Group("/api")
+func registerRoutes(e *echo.Echo, manager *tenant.Manager, messageService *message.Service, jwtManager *auth.JWTManager) {
+
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
+	public := e.Group("/api")
+	loginHandler := handler.NewLoginHandler(jwtManager)
+	loginHandler.RegisterRoutes(public)
+
+	protected := e.Group("/api", JWTAuthMiddleware(jwtManager))
 	tenantHandler := handler.NewTenantHandler(manager)
-	tenantHandler.RegisterTenantRoutes(api)
+	tenantHandler.RegisterTenantRoutes(protected)
 
 	messageHandler := handler.NewMessageHandler(messageService)
-	messageHandler.RegisterMessageRoute(api)
+	messageHandler.RegisterMessageRoute(protected)
 }
 
 func (s *Server) GetEcho() *echo.Echo {

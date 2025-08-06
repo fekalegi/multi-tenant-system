@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/fekalegi/multi-tenant-system/internal/auth"
 	"github.com/fekalegi/multi-tenant-system/internal/message"
 	message2 "github.com/fekalegi/multi-tenant-system/internal/repository/postgresql"
 	"net/http"
@@ -45,8 +46,11 @@ func Start(cfg *config.Config) {
 	messageRepo := message2.NewMessageRepository(dbPool)
 	messageService := message.NewService(publisher, messageRepo)
 
+	// JWT Manager
+	jwtManager := auth.NewJWTManager(cfg.JWTConfig.Secret, cfg.JWTConfig.ExpirationTime)
+
 	// HTTP Server
-	srv := server.NewServer(cfg, manager, messageService, log)
+	srv := server.NewServer(cfg, manager, messageService, jwtManager, log)
 
 	// Graceful Shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

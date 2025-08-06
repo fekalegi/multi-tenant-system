@@ -15,8 +15,64 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Mock login",
+                "parameters": [
+                    {
+                        "description": "Mock user",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/messages": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves a paginated list of all processed messages.",
                 "produces": [
                     "application/json"
@@ -57,6 +113,11 @@ const docTemplate = `{
         },
         "/api/messages/{tenant_id}": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Publishes a JSON payload to a specific tenant's queue.",
                 "consumes": [
                     "application/json"
@@ -110,6 +171,11 @@ const docTemplate = `{
         },
         "/api/tenants": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new tenant and returns its generated ID and name.",
                 "consumes": [
                     "application/json"
@@ -156,6 +222,11 @@ const docTemplate = `{
         },
         "/api/tenants/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a tenant by its ID.",
                 "tags": [
                     "tenants"
@@ -191,6 +262,11 @@ const docTemplate = `{
         },
         "/api/tenants/{id}/config/concurrency": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates the number of concurrent workers for a specific tenant.",
                 "consumes": [
                     "application/json"
@@ -216,7 +292,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tenant.ConcurrencyConfig"
+                            "$ref": "#/definitions/domain.ConcurrencyConfig"
                         }
                     }
                 ],
@@ -244,6 +320,34 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.ConcurrencyConfig": {
+            "type": "object",
+            "properties": {
+                "workers": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.Message": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "tenant_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateTenantRequest": {
             "type": "object",
             "properties": {
@@ -280,12 +384,31 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/message.Message"
+                        "$ref": "#/definitions/domain.Message"
                     }
                 },
                 "next_cursor": {
                     "type": "string",
                     "example": "eyJpZCI6ImYx...YjAifQ=="
+                }
+            }
+        },
+        "dto.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "tenant_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         },
@@ -295,35 +418,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "operation successful"
-                }
-            }
-        },
-        "message.Message": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                },
-                "tenantID": {
-                    "type": "string"
-                }
-            }
-        },
-        "tenant.ConcurrencyConfig": {
-            "type": "object",
-            "properties": {
-                "workers": {
-                    "type": "integer"
                 }
             }
         }

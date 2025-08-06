@@ -40,6 +40,7 @@ func (h *MessageHandler) RegisterMessageRoute(e *echo.Group) {
 // @Success     200 {object} dto.MessageResponse
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     500 {object} dto.ErrorResponse
+// @Security 	BearerAuth
 // @Router      /api/messages/{tenant_id} [post]
 func (h *MessageHandler) Publish(c echo.Context) error {
 	tenantID := c.Param("tenant_id")
@@ -70,6 +71,7 @@ func (h *MessageHandler) Publish(c echo.Context) error {
 // @Param       limit query int false "Limit"
 // @Success     200 {object} dto.GetMessagesResponse
 // @Failure     500 {object} dto.ErrorResponse
+// @Security 	BearerAuth
 // @Router      /api/messages [get]
 func (h *MessageHandler) GetMessages(c echo.Context) error {
 	ctx := c.Request().Context()
