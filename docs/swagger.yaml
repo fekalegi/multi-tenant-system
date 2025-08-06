@@ -1,0 +1,214 @@
+basePath: /
+definitions:
+  dto.CreateTenantRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  dto.CreateTenantResponse:
+    properties:
+      id:
+        example: a1b2c3d4-e5f6-7890-1234-567890abcdef
+        type: string
+      name:
+        example: My Awesome Tenant
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        example: resource not found
+        type: string
+    type: object
+  dto.GetMessagesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/message.Message'
+        type: array
+      next_cursor:
+        example: eyJpZCI6ImYx...YjAifQ==
+        type: string
+    type: object
+  dto.MessageResponse:
+    properties:
+      message:
+        example: operation successful
+        type: string
+    type: object
+  message.Message:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      payload:
+        items:
+          format: int32
+          type: integer
+        type: array
+      tenantID:
+        type: string
+    type: object
+  tenant.ConcurrencyConfig:
+    properties:
+      workers:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a multi-tenant messaging system API.
+  title: Multi-Tenant Messaging API
+  version: "1.0"
+paths:
+  /api/messages:
+    get:
+      description: Retrieves a paginated list of all processed messages.
+      parameters:
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetMessagesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get messages with cursor-based pagination
+      tags:
+      - messages
+  /api/messages/{tenant_id}:
+    post:
+      consumes:
+      - application/json
+      description: Publishes a JSON payload to a specific tenant's queue.
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: tenant_id
+        required: true
+        type: string
+      - description: Message Payload
+        in: body
+        name: message
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Publish a message to a tenant
+      tags:
+      - messages
+  /api/tenants:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new tenant and returns its generated ID and name.
+      parameters:
+      - description: Tenant name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTenantRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreateTenantResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new tenant
+      tags:
+      - tenants
+  /api/tenants/{id}:
+    delete:
+      description: Deletes a tenant by its ID.
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a tenant
+      tags:
+      - tenants
+  /api/tenants/{id}/config/concurrency:
+    put:
+      consumes:
+      - application/json
+      description: Updates the number of concurrent workers for a specific tenant.
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Concurrency config
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tenant.ConcurrencyConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update tenant concurrency setting
+      tags:
+      - tenants
+swagger: "2.0"
