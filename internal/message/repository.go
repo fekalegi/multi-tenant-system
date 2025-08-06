@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,11 +46,22 @@ func (r *repository) GetMessagesWithCursor(ctx context.Context, cursor string, l
 	if cursor != "" {
 		decoded, err := base64.StdEncoding.DecodeString(cursor)
 		if err != nil {
-			return nil, "", fmt.Errorf("invalid cursor")
+			return nil, "", fmt.Errorf("invalid cursor: not base64 encoded")
 		}
-		_, err = fmt.Sscanf(string(decoded), "%s|%s", &afterTime, &afterID)
+
+		parts := strings.SplitN(string(decoded), "|", 2)
+		if len(parts) != 2 {
+			return nil, "", fmt.Errorf("invalid cursor: malformed structure")
+		}
+
+		afterTime, err = time.Parse(time.RFC3339Nano, parts[0])
 		if err != nil {
-			return nil, "", fmt.Errorf("invalid cursor format")
+			return nil, "", fmt.Errorf("invalid cursor: could not parse time")
+		}
+
+		afterID, err = uuid.Parse(parts[1])
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid cursor: could not parse id")
 		}
 	}
 

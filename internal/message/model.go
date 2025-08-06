@@ -7,14 +7,8 @@ import (
 )
 
 type Message struct {
-	ID        uuid.UUID
-	TenantID  uuid.UUID
-	Payload   []byte
-	CreatedAt time.Time
-}
-
-type CursorPaginationResult struct {
-	Messages   []*Message
-	NextCursor string
-	HasMore    bool
+	ID        uuid.UUID `json:"id"`
+	TenantID  uuid.UUID `json:"tenant_id"`
+	Payload   []byte    `json:"payload"`
+	CreatedAt time.Time `json:"created_at"`
 }

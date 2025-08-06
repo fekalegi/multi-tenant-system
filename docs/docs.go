@@ -31,6 +31,12 @@ const docTemplate = `{
                         "description": "Cursor for pagination",
                         "name": "cursor",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {

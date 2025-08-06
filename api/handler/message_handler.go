@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/google/uuid"
 	"net/http"
+	"strconv"
 
 	"github.com/fekalegi/multi-tenant-system/api/dto" // Import the DTO package
 	"github.com/fekalegi/multi-tenant-system/internal/message"
@@ -66,15 +67,26 @@ func (h *MessageHandler) Publish(c echo.Context) error {
 // @Tags        messages
 // @Produce     json
 // @Param       cursor query string false "Cursor for pagination"
+// @Param       limit query int false "Limit"
 // @Success     200 {object} dto.GetMessagesResponse
 // @Failure     500 {object} dto.ErrorResponse
 // @Router      /api/messages [get]
 func (h *MessageHandler) GetMessages(c echo.Context) error {
 	ctx := c.Request().Context()
 	cursor := c.QueryParam("cursor")
+	limitStr := c.QueryParam("limit")
 
+	limit := 1
+	var err error
+
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "Invalid 'limit' parameter. Must be an integer."})
+		}
+	}
 	// Assuming the service returns ([]message.Message, string, error)
-	messages, nextCursor, err := h.messageService.FetchMessagesWithCursor(ctx, cursor, 10)
+	messages, nextCursor, err := h.messageService.FetchMessagesWithCursor(ctx, cursor, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: err.Error()})
 	}
